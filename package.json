@@ -1,0 +1,100 @@
+{
+  "name": "vscode-arduino-sketch-vault",
+  "displayName": "Arduino Sketch Vault",
+  "description": "Logs Arduino board configuration changes (FQBN, Upload Speed, etc.) to help track your project settings",
+  "version": "0.0.1",
+  "license": "MIT",
+  "repository": "https://github.com/devista-consulting/arduino-sketch-vault.git",
+  "publisher": "devista-consulting",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "arduino",
+    "board configuration",
+    "fqbn",
+    "logging",
+    "tracking"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "arduino-sketch-vault.clearLogs",
+        "title": "Arduino Sketch Vault: Clear Logs"
+      },
+      {
+        "command": "arduino-sketch-vault.showLogs",
+        "title": "Arduino Sketch Vault: Show Logs"
+      },
+      {
+        "command": "arduino-sketch-vault.createSketchYaml",
+        "title": "Arduino Sketch Vault: Create sketch.yaml"
+      },
+      {
+        "command": "arduino-sketch-vault.toggleUploadSpeed",
+        "title": "Arduino Sketch Vault: [POC] Toggle Upload Speed"
+      },
+      {
+        "command": "arduino-sketch-vault.applySketchYaml",
+        "title": "Arduino Sketch Vault: Apply sketch.yaml Configuration"
+      },
+      {
+        "command": "arduino-sketch-vault.showConfigurations",
+        "title": "Arduino Sketch Vault: Switch Board Configuration"
+      },
+      {
+        "command": "arduino-sketch-vault.createConfiguration",
+        "title": "Arduino Sketch Vault: Create Board Configuration"
+      }
+    ],
+    "configuration": {
+      "title": "Arduino Sketch Vault",
+      "properties": {
+        "arduino-sketch-vault.autoUpdateSketchYaml": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically update sketch.yaml when board configuration changes"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package-extension",
+    "compile": "npm run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "watch": "node esbuild.js --watch",
+    "package-extension": "npm run check-types && node esbuild.js --production",
+    "package": "vsce package",
+    "test": "jest",
+    "test:unit": "jest --testPathPatterns=test/suite/unit",
+    "test:integration": "jest --testPathPatterns=test/suite/integration",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --maxWorkers=2"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "vscode-arduino-api": "^0.1.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^18.x",
+    "@types/sinon": "^17.0.4",
+    "@types/vscode": "^1.74.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^2.19.0",
+    "esbuild": "^0.25.11",
+    "jest": "^30.2.0",
+    "sinon": "^21.0.0",
+    "ts-jest": "^29.4.5",
+    "typescript": "^5.3.0"
+  }
+}

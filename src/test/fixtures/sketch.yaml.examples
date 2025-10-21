@@ -1,0 +1,88 @@
+# Example sketch.yaml files for testing
+
+# ==================== SINGLE PROFILE ====================
+---
+single_profile: |
+  profiles:
+    default:
+      fqbn: esp32:esp32:esp32s3:UploadSpeed=921600,USBMode=hwcdc,CDCOnBoot=cdc
+      platforms:
+        - platform: esp32:esp32 (3.0.7)
+      libraries: []
+  default_profile: default
+
+# ==================== MULTIPLE PROFILES ====================
+---
+multiple_profiles: |
+  profiles:
+    default:
+      fqbn: esp32:esp32:esp32s3:UploadSpeed=921600,USBMode=hwcdc
+      platforms:
+        - platform: esp32:esp32 (3.0.7)
+      libraries:
+        - WiFi
+    production:
+      fqbn: esp32:esp32:esp32s3:UploadSpeed=460800,USBMode=default
+      platforms:
+        - platform: esp32:esp32 (3.0.7)
+      libraries:
+        - WiFi
+        - HTTPClient
+    debug:
+      fqbn: esp32:esp32:esp32s3:UploadSpeed=115200,DebugLevel=verbose
+      platforms:
+        - platform: esp32:esp32 (3.0.7)
+      libraries:
+        - WiFi
+  default_profile: default
+
+# ==================== ARDUINO UNO PROFILE ====================
+---
+arduino_uno: |
+  profiles:
+    default:
+      fqbn: arduino:avr:uno
+      platforms:
+        - platform: arduino:avr (1.8.6)
+      libraries: []
+  default_profile: default
+
+# ==================== INVALID YAML ====================
+---
+invalid_yaml: |
+  profiles:
+    default:
+      fqbn: esp32:esp32:esp32s3
+      platforms
+        - platform: esp32:esp32 (3.0.7)
+  # Missing colon after platforms, invalid YAML
+
+# ==================== MISSING DEFAULT PROFILE ====================
+---
+missing_default: |
+  profiles:
+    default:
+      fqbn: esp32:esp32:esp32s3
+      platforms:
+        - platform: esp32:esp32 (3.0.7)
+      libraries: []
+  # default_profile field is missing
+
+# ==================== EMPTY PROFILES ====================
+---
+empty_profiles: |
+  profiles: {}
+  default_profile: default
+
+# ==================== NO OPTIONS FQBN ====================
+---
+no_options: |
+  profiles:
+    default:
+      fqbn: arduino:avr:uno
+      platforms:
+        - platform: arduino:avr (1.8.6)
+      libraries:
+        - Servo
+        - LiquidCrystal
+  default_profile: default

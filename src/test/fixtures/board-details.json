@@ -1,0 +1,103 @@
+{
+  "esp32s3": {
+    "fqbn": "esp32:esp32:esp32s3",
+    "name": "ESP32S3 Dev Module",
+    "configOptions": [
+      {
+        "option": "UploadSpeed",
+        "optionLabel": "Upload Speed",
+        "values": [
+          {
+            "value": "115200",
+            "valueLabel": "115200",
+            "selected": false
+          },
+          {
+            "value": "460800",
+            "valueLabel": "460800",
+            "selected": false
+          },
+          {
+            "value": "921600",
+            "valueLabel": "921600",
+            "selected": true
+          }
+        ]
+      },
+      {
+        "option": "USBMode",
+        "optionLabel": "USB Mode",
+        "values": [
+          {
+            "value": "hwcdc",
+            "valueLabel": "Hardware CDC and JTAG",
+            "selected": true
+          },
+          {
+            "value": "default",
+            "valueLabel": "USB-OTG (TinyUSB)",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "option": "CDCOnBoot",
+        "optionLabel": "CDC On Boot",
+        "values": [
+          {
+            "value": "cdc",
+            "valueLabel": "Enabled",
+            "selected": true
+          },
+          {
+            "value": "default",
+            "valueLabel": "Disabled",
+            "selected": false
+          }
+        ]
+      }
+    ],
+    "buildProperties": {
+      "build.board": "ESP32S3_DEV",
+      "build.f_cpu": "240000000L",
+      "version": "3.0.7"
+    }
+  },
+  "arduino_uno": {
+    "fqbn": "arduino:avr:uno",
+    "name": "Arduino Uno",
+    "configOptions": [
+      {
+        "option": "cpu",
+        "optionLabel": "Processor",
+        "values": [
+          {
+            "value": "atmega328p",
+            "valueLabel": "ATmega328P",
+            "selected": true
+          },
+          {
+            "value": "atmega328",
+            "valueLabel": "ATmega328P (Old Bootloader)",
+            "selected": false
+          }
+        ]
+      }
+    ],
+    "buildProperties": {
+      "build.board": "AVR_UNO",
+      "build.f_cpu": "16000000L",
+      "version": "1.8.6"
+    }
+  },
+  "esp32_no_options": {
+    "fqbn": "esp32:esp32:esp32",
+    "name": "ESP32 Dev Module",
+    "configOptions": [],
+    "buildProperties": {
+      "build.board": "ESP32_DEV",
+      "build.f_cpu": "240000000L",
+      "version": "3.0.7"
+    }
+  }
+}
