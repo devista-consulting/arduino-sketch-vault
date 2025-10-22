@@ -107,9 +107,17 @@ export function extractPlatformId(fqbn: string): string {
 
 /**
  * Formats platform string with version
+ *
+ * Version should be extracted from runtime.platform.path using getPlatformVersion()
+ * which contains the actual installed version (e.g., "2.0.18-arduino.5") rather than
+ * the unreliable version property from platform.txt which may contain invalid formats
+ * like "v2.0.17-arduino.5" or outdated versions.
+ *
  * @param platformId Platform ID (vendor:arch)
- * @param version Optional platform version
+ * @param version Optional platform version (should come from runtime.platform.path)
  * @returns Formatted platform string
+ * @see getPlatformVersion in version-utils.ts
+ * @see https://github.com/devista-consulting/arduino-sketch-vault/issues/1
  */
 export function formatPlatformString(platformId: string, version?: string): string {
   return version ? `${platformId} (${version})` : platformId;

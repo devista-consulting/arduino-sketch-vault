@@ -2,7 +2,7 @@
   "name": "vscode-arduino-sketch-vault",
   "displayName": "Arduino Sketch Vault",
   "description": "Logs Arduino board configuration changes (FQBN, Upload Speed, etc.) to help track your project settings",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "repository": "https://github.com/devista-consulting/arduino-sketch-vault.git",
   "publisher": "devista-consulting",
