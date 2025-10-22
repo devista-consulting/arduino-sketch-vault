@@ -3,6 +3,7 @@ import type { ArduinoContext, BoardDetails, Profile, SketchYamlStructure } from 
 import { SketchYamlService } from './sketch-yaml-service';
 import { BoardSyncService } from './board-sync-service';
 import { buildCompleteFqbn, formatFqbnSummary, extractPlatformId, formatPlatformString } from '../utils/fqbn-utils';
+import { getPlatformVersion } from '../utils/version-utils';
 import { DEFAULT_PROFILE_NAME, PROFILE_NAME_PATTERN, PROFILE_NAME_ERROR } from '../utils/constants';
 
 export class ProfileService {
@@ -395,8 +396,8 @@ export class ProfileService {
     // Extract platform from FQBN
     const platformId = extractPlatformId(fqbn);
 
-    // Try to get platform version from buildProperties
-    const platformVersion = boardDetails?.buildProperties?.['version'];
+    // Get platform version from runtime.platform.path (most reliable source)
+    const platformVersion = getPlatformVersion(boardDetails?.buildProperties, platformId);
 
     // Build platform string with version if available
     const platformString = formatPlatformString(platformId, platformVersion);

@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import type { ArduinoContext, BoardDetails, SketchYamlProfile, SketchYamlStructure } from '../types';
 import { buildCompleteFqbn, extractPlatformId, formatPlatformString } from '../utils/fqbn-utils';
+import { getPlatformVersion } from '../utils/version-utils';
 import { SKETCH_YAML_FILENAME, DEFAULT_PROFILE_NAME, CONFIG_AUTO_UPDATE_SKETCH_YAML } from '../utils/constants';
 
 export class SketchYamlService {
@@ -118,8 +119,8 @@ export class SketchYamlService {
     // Extract platform from FQBN
     const platformId = extractPlatformId(fqbn);
 
-    // Try to get platform version from buildProperties
-    const platformVersion = boardDetails?.buildProperties?.['version'];
+    // Get platform version from runtime.platform.path (most reliable source)
+    const platformVersion = getPlatformVersion(boardDetails?.buildProperties, platformId);
 
     // Build platform string with version if available
     const platformString = formatPlatformString(platformId, platformVersion);
