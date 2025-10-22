@@ -16,6 +16,12 @@ A powerful VS Code extension for Arduino IDE that provides **automated configura
 >
 > Your feedback and bug reports are invaluable in helping us improve the extension!
 
+## Preview
+
+![Arduino Sketch Vault Profile Selector](./assets/v0.0.1-screenshot.png)
+
+*Profile selector showing saved board configurations with instant switching capability. The status bar trigger displays the currently active profile.*
+
 ## Why Arduino Sketch Vault?
 
 - **Never lose track of board settings** - Automatically logs every configuration change
