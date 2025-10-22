@@ -14,9 +14,11 @@
   ],
   "keywords": [
     "arduino",
+    "arduino-ide",
+    "sketch",
+    "portable",
     "board configuration",
     "fqbn",
-    "logging",
     "tracking"
   ],
   "activationEvents": [

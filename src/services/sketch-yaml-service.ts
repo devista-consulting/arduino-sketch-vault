@@ -256,7 +256,7 @@ export class SketchYamlService {
 
       // Update platform to match new FQBN
       const platformId = extractPlatformId(newFqbn);
-      const platformVersion = boardDetails?.buildProperties?.['version'];
+      const platformVersion = getPlatformVersion(boardDetails?.buildProperties, platformId);
       const platformString = formatPlatformString(platformId, platformVersion);
 
       // Update or create platforms array
