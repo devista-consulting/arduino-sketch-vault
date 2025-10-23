@@ -6,8 +6,9 @@
  * Example: esp32:esp32:esp32s3:UploadSpeed=921600,USBMode=hwcdc
  */
 
+import { FQBN, valid as isValidFqbn } from 'fqbn';
 import type { BoardDetails, ParsedFqbn } from '../types';
-import { DEFAULT_MAX_OPTIONS_DISPLAY, FQBN_OPTIONS_TRUNCATION_SUFFIX } from './constants';
+import { DEFAULT_MAX_OPTIONS_DISPLAY } from './constants';
 
 /**
  * Parses FQBN string into base board and config options
@@ -15,32 +16,11 @@ import { DEFAULT_MAX_OPTIONS_DISPLAY, FQBN_OPTIONS_TRUNCATION_SUFFIX } from './c
  * @returns Parsed FQBN with baseFqbn and options map, or null if invalid
  */
 export function parseFqbn(fqbn: string): ParsedFqbn | null {
-  const parts = fqbn.split(':');
-
-  if (parts.length < 3) {
+  if (!isValidFqbn(fqbn)) {
     return null;
   }
-
-  const vendor = parts[0];
-  const arch = parts[1];
-  const board = parts[2];
-  const baseFqbn = `${vendor}:${arch}:${board}`;
-
-  // Parse options if present
-  const options: { [key: string]: string } = {};
-  if (parts.length > 3) {
-    const optionsString = parts.slice(3).join(':');
-    const optionPairs = optionsString.split(',');
-
-    for (const pair of optionPairs) {
-      const [key, value] = pair.split('=');
-      if (key && value) {
-        options[key] = value;
-      }
-    }
-  }
-
-  return { baseFqbn, options };
+  const parsed = new FQBN(fqbn);
+  return { baseFqbn: parsed.toString(true), options: parsed.options ?? {} };
 }
 
 /**
@@ -49,34 +29,21 @@ export function parseFqbn(fqbn: string): ParsedFqbn | null {
  * @returns Complete FQBN string or undefined if invalid
  */
 export function buildCompleteFqbn(boardDetails: BoardDetails | undefined): string | undefined {
-  if (!boardDetails) {
+  if (!boardDetails?.fqbn) {
     return undefined;
   }
 
-  // Start with base FQBN
-  const baseFqbn = boardDetails.fqbn;
-
-  // Extract selected config options
-  const configOptions = boardDetails.configOptions;
-  if (!configOptions || configOptions.length === 0) {
-    return baseFqbn;
-  }
-
-  // Build config string from selected values
-  const configPairs: string[] = [];
-  for (const option of configOptions) {
-    const selectedValue = option.values.find(v => v.selected);
-    if (selectedValue) {
-      configPairs.push(`${option.option}=${selectedValue.value}`);
+  const parsed = new FQBN(boardDetails.fqbn);
+  try {
+    return parsed
+      .withConfigOptions(...boardDetails.configOptions)
+      .toString();
+  } catch (e) {
+    if (e instanceof Error && e.name === 'ConfigOptionError') {
+      return parsed.toString();
     }
+    throw e
   }
-
-  // Combine base FQBN with config options
-  if (configPairs.length > 0) {
-    return `${baseFqbn}:${configPairs.join(',')}`;
-  }
-
-  return baseFqbn;
 }
 
 /**
@@ -85,11 +52,10 @@ export function buildCompleteFqbn(boardDetails: BoardDetails | undefined): strin
  * @returns Base FQBN (vendor:arch:board)
  */
 export function extractBaseFqbn(fqbn: string): string {
-  const parts = fqbn.split(':');
-  if (parts.length < 3) {
+  if (!isValidFqbn(fqbn)) {
     return fqbn;
   }
-  return `${parts[0]}:${parts[1]}:${parts[2]}`;
+  return new FQBN(fqbn).toString(true);
 }
 
 /**
@@ -98,11 +64,11 @@ export function extractBaseFqbn(fqbn: string): string {
  * @returns Platform ID (vendor:arch)
  */
 export function extractPlatformId(fqbn: string): string {
-  const parts = fqbn.split(':');
-  if (parts.length < 2) {
+  if (!isValidFqbn(fqbn)) {
     return fqbn;
   }
-  return `${parts[0]}:${parts[1]}`;
+  const { vendor, arch } = new FQBN(fqbn);
+  return `${vendor}:${arch}`;
 }
 
 /**
@@ -132,27 +98,13 @@ export function formatPlatformString(platformId: string, version?: string): stri
  * @example "esp32:esp32:esp32s3:UploadSpeed=460800,USBMode=hwcdc..."
  */
 export function formatFqbnSummary(fqbn: string, maxOptions: number = DEFAULT_MAX_OPTIONS_DISPLAY): string {
-  const parts = fqbn.split(':');
-
-  // Extract base board (vendor:arch:board)
-  const baseBoard = parts.slice(0, 3).join(':');
-
-  // Extract config options (everything after the 3rd colon)
-  if (parts.length <= 3) {
-    return baseBoard;
-  }
-
-  const optionsString = parts.slice(3).join(':');
-  const options = optionsString.split(',');
-
-  if (options.length === 0) {
-    return baseBoard;
-  }
-
-  // Show first N options
-  const displayOptions = options.slice(0, maxOptions);
-  const hasMore = options.length > maxOptions;
-
-  const optionsSummary = displayOptions.join(',') + (hasMore ? FQBN_OPTIONS_TRUNCATION_SUFFIX : '');
-  return `${baseBoard}:${optionsSummary}`;
+  const parsed = new FQBN(fqbn);
+  const limited = parsed.limitConfigOptions(maxOptions);
+  const appendEllipses =
+    Object.entries(parsed.options ?? {}).length > maxOptions;
+  const appendColon =
+    appendEllipses && Object.entries(limited.options ?? {}).length === 0;
+  return `${limited.toString()}${appendColon ? ':' : ''}${
+    appendEllipses ? '...' : ''
+  }`;
 }

@@ -12,6 +12,7 @@ import {
 } from '../../../../utils/fqbn-utils';
 import { createESP32S3BoardDetails, createBoardDetailsWithOptions } from '../../../mocks/arduino-api-mock';
 import type { BoardDetails } from '../../../../types';
+import { FQBN } from 'fqbn';
 
 describe('FQBN Utilities', () => {
   describe('parseFqbn', () => {
@@ -71,18 +72,12 @@ describe('FQBN Utilities', () => {
       expect(parseFqbn('')).toBeNull();
     });
 
-    it('should handle malformed option pairs gracefully', () => {
+    it('should error with malformed option pairs', () => {
       const fqbn = 'esp32:esp32:esp32s3:UploadSpeed=921600,InvalidOption,USBMode=hwcdc';
       const result = parseFqbn(fqbn);
 
-      // Should only parse valid option pairs
-      expect(result).toEqual({
-        baseFqbn: 'esp32:esp32:esp32s3',
-        options: {
-          UploadSpeed: '921600',
-          USBMode: 'hwcdc'
-        }
-      });
+      // Invalid FQBN is treated as falsy
+      expect(result).toBeNull();
     });
 
     it('should handle option values containing special characters', () => {
@@ -100,6 +95,10 @@ describe('FQBN Utilities', () => {
   });
 
   describe('buildCompleteFqbn', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('should build complete FQBN from BoardDetails with all selected options', () => {
       const boardDetails = createESP32S3BoardDetails();
       const fqbn = buildCompleteFqbn(boardDetails);
@@ -156,6 +155,17 @@ describe('FQBN Utilities', () => {
 
       const fqbn = buildCompleteFqbn(boardDetails);
       expect(fqbn).toBe('test:board:v1:Speed=160MHz');
+    });
+
+    it('should rethrow unexpected errors from fqbn library', () => {
+      const boardDetails = createESP32S3BoardDetails();
+      const unexpected = new Error('unexpected failure');
+
+      jest.spyOn(FQBN.prototype, 'withConfigOptions').mockImplementation(() => {
+        throw unexpected;
+      });
+
+      expect(() => buildCompleteFqbn(boardDetails)).toThrow(unexpected);
     });
   });
 
