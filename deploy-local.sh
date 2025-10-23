@@ -35,8 +35,19 @@ else
 fi
 echo ""
 
-# Step 1: Compile TypeScript
-echo "📦 Step 1: Compiling TypeScript..."
+# Step 1: Install/update dependencies
+echo "📦 Step 1: Installing dependencies..."
+npm install
+if [ $? -eq 0 ]; then
+    echo "✅ Dependencies installed"
+else
+    echo "❌ Dependency installation failed"
+    exit 1
+fi
+echo ""
+
+# Step 2: Compile TypeScript
+echo "🔨 Step 2: Compiling TypeScript..."
 npm run compile
 if [ $? -eq 0 ]; then
     echo "✅ Compilation successful"
@@ -46,8 +57,8 @@ else
 fi
 echo ""
 
-# Step 2: Package extension
-echo "📦 Step 2: Packaging extension..."
+# Step 3: Package extension
+echo "📦 Step 3: Packaging extension..."
 npm run package
 if [ $? -eq 0 ]; then
     echo "✅ Packaging successful"
@@ -57,31 +68,42 @@ else
 fi
 echo ""
 
-# Step 3: Clean old installation
-echo "🧹 Step 3: Cleaning old installation..."
+# Step 4: Clean old installations (all versions)
+echo "🧹 Step 4: Cleaning old installations..."
 
-OLD_DEPLOYMENT_DIR="$ARDUINO_IDE_DIR/deployedPlugins/${EXTENSION_NAME}-${VERSION}"
-OLD_VSIX_FILE="$ARDUINO_IDE_DIR/plugins/${VSIX_FILENAME}"
-
-if [ -d "$OLD_DEPLOYMENT_DIR" ]; then
-    echo "   Removing old deployment directory: $OLD_DEPLOYMENT_DIR"
-    rm -rf "$OLD_DEPLOYMENT_DIR"
-    echo "   ✅ Removed old deployment directory"
+# Remove all old deployment directories
+DEPLOYED_PLUGINS_DIR="$ARDUINO_IDE_DIR/deployedPlugins"
+if [ -d "$DEPLOYED_PLUGINS_DIR" ]; then
+    FOUND_DIRS=$(find "$DEPLOYED_PLUGINS_DIR" -maxdepth 1 -type d -name "${EXTENSION_NAME}-*" 2>/dev/null)
+    if [ -n "$FOUND_DIRS" ]; then
+        echo "   Removing old deployment directories matching: ${EXTENSION_NAME}-*"
+        find "$DEPLOYED_PLUGINS_DIR" -maxdepth 1 -type d -name "${EXTENSION_NAME}-*" -exec rm -rf {} +
+        echo "   ✅ Removed old deployment directories"
+    else
+        echo "   ⏭️  No old deployment directories found"
+    fi
 else
-    echo "   ⏭️  No old deployment directory found"
+    echo "   ⏭️  No deployedPlugins directory found"
 fi
 
-if [ -f "$OLD_VSIX_FILE" ]; then
-    echo "   Removing old VSIX file: $OLD_VSIX_FILE"
-    rm -f "$OLD_VSIX_FILE"
-    echo "   ✅ Removed old VSIX file"
+# Remove all old VSIX files
+PLUGINS_DIR="$ARDUINO_IDE_DIR/plugins"
+if [ -d "$PLUGINS_DIR" ]; then
+    FOUND_FILES=$(find "$PLUGINS_DIR" -maxdepth 1 -type f -name "${EXTENSION_NAME}-*.vsix" 2>/dev/null)
+    if [ -n "$FOUND_FILES" ]; then
+        echo "   Removing old VSIX files matching: ${EXTENSION_NAME}-*.vsix"
+        find "$PLUGINS_DIR" -maxdepth 1 -type f -name "${EXTENSION_NAME}-*.vsix" -exec rm -f {} +
+        echo "   ✅ Removed old VSIX files"
+    else
+        echo "   ⏭️  No old VSIX files found"
+    fi
 else
-    echo "   ⏭️  No old VSIX file found"
+    echo "   ⏭️  No plugins directory found"
 fi
 echo ""
 
-# Step 4: Copy new VSIX to plugins directory
-echo "📥 Step 4: Installing new extension..."
+# Step 5: Copy new VSIX to plugins directory
+echo "📥 Step 5: Installing new extension..."
 
 PLUGINS_DIR="$ARDUINO_IDE_DIR/plugins"
 NEW_VSIX_FILE="./${VSIX_FILENAME}"
@@ -102,7 +124,7 @@ else
 fi
 echo ""
 
-# Step 5: Done
+# Step 6: Done
 echo "✅ Deployment Complete!"
 echo ""
 echo "📋 Next steps:"

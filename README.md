@@ -514,6 +514,43 @@ bash -c "source ~/.nvm/nvm.sh && nvm use 20 && npx vsce package"
 
 Output: `vscode-arduino-sketch-vault-{version}.vsix`
 
+### Local Deployment
+
+For rapid development and testing, use the automated deployment script to compile, package, and install the extension directly into Arduino IDE:
+
+```bash
+# Deploy to local Arduino IDE
+./deploy-local.sh
+```
+
+**What it does:**
+1. ✅ Sets correct Node version (requires NVM)
+2. 📦 Installs/updates dependencies (ensures package-lock.json is current)
+3. 🔨 Compiles TypeScript code
+4. 📦 Packages extension as `.vsix`
+5. 🧹 Removes all old versions from Arduino IDE
+6. 📥 Installs new version into Arduino IDE plugins directory
+
+**Custom Arduino IDE location:**
+```bash
+# Default location: ~/.arduinoIDE
+# Override with environment variable:
+ARDUINO_IDE_DIR=~/custom/arduino-ide ./deploy-local.sh
+```
+
+**After deployment:**
+1. **Restart Arduino IDE** completely
+2. Extension loads automatically on startup
+3. Check status bar for `$(circuit-board) VAULT` indicator
+4. View logs in Output panel → "Arduino Sketch Vault"
+
+**Platform-specific default directories:**
+- **macOS**: `~/.arduinoIDE`
+- **Linux**: `~/.arduinoIDE`
+- **Windows**: `%USERPROFILE%\.arduinoIDE`
+
+> ⓘ **Tip**: This is much faster than manually copying `.vsix` files and is the recommended workflow for development.
+
 ### Project Structure
 
 ```
@@ -528,12 +565,11 @@ arduino-sketch-vault/
 │   └── types.ts                  # Type definitions
 ├── out/                          # Compiled JavaScript (gitignored)
 ├── test/                         # Unit and integration tests
+├── deploy-local.sh               # Automated local deployment script
 ├── package.json                  # Extension manifest
 ├── tsconfig.json                 # TypeScript configuration
 └── README.md                     # This file
 ```
-
-See [CLAUDE.md](./CLAUDE.md) for detailed architecture documentation.
 
 ## Contributing
 
