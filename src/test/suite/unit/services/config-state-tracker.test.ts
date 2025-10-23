@@ -143,7 +143,7 @@ describe('ConfigStateTracker', () => {
       });
     });
 
-    it('should track states separately per FQBN', () => {
+    it('should track states separately per FQBN and detect board switches', () => {
       const fqbn1 = 'esp32:esp32:esp32s3';
       const fqbn2 = 'arduino:avr:uno';
 
@@ -160,21 +160,39 @@ describe('ConfigStateTracker', () => {
         ]
       );
 
-      // First detection for both boards
+      // First detection for board 1 - initial state
       const result1 = tracker.detectChanges(fqbn1, boardDetails1);
-      const result2 = tracker.detectChanges(fqbn2, boardDetails2);
-
       expect(result1.isInitial).toBe(true);
-      expect(result2.isInitial).toBe(true);
+      expect(result1.changes).toEqual([]);
 
-      // Second detection for both boards (no changes)
+      // Switch to board 2 - should detect board change (not initial)
+      const result2 = tracker.detectChanges(fqbn2, boardDetails2);
+      expect(result2.isInitial).toBe(false);
+      expect(result2.changes).toHaveLength(1);
+      expect(result2.changes[0]).toEqual({
+        option: 'FQBN',
+        label: 'Board Selection',
+        previousValue: fqbn1,
+        newValue: fqbn2,
+        previousLabel: 'Previous board',
+        newLabel: 'New board',
+      });
+
+      // Switch back to board 1 - should detect board change
       const result1_2 = tracker.detectChanges(fqbn1, boardDetails1);
-      const result2_2 = tracker.detectChanges(fqbn2, boardDetails2);
-
       expect(result1_2.isInitial).toBe(false);
-      expect(result1_2.changes).toEqual([]);
+      expect(result1_2.changes).toHaveLength(1);
+      expect(result1_2.changes[0].option).toBe('FQBN');
+      expect(result1_2.changes[0].previousValue).toBe(fqbn2);
+      expect(result1_2.changes[0].newValue).toBe(fqbn1);
+
+      // Switch back to board 2 - should detect board change
+      const result2_2 = tracker.detectChanges(fqbn2, boardDetails2);
       expect(result2_2.isInitial).toBe(false);
-      expect(result2_2.changes).toEqual([]);
+      expect(result2_2.changes).toHaveLength(1);
+      expect(result2_2.changes[0].option).toBe('FQBN');
+      expect(result2_2.changes[0].previousValue).toBe(fqbn1);
+      expect(result2_2.changes[0].newValue).toBe(fqbn2);
     });
 
     it('should handle config option with no selected value', () => {
@@ -259,6 +277,48 @@ describe('ConfigStateTracker', () => {
       const result2 = tracker.detectChanges(fqbn, boardDetails);
       expect(result2.isInitial).toBe(false);
       expect(result2.changes).toEqual([]);
+    });
+
+    it('should detect board switch from board with options to board without options', () => {
+      const fqbnESP32 = 'esp32:esp32:esp32s3';
+      const fqbnLUFA = 'Arduino-LUFA:avr:yun';
+
+      // ESP32 board with many config options
+      const esp32Details = createESP32S3BoardDetails();
+
+      // Arduino-LUFA board with no config options
+      const lufaDetails: BoardDetails = {
+        fqbn: fqbnLUFA,
+        configOptions: [],
+        programmers: [],
+        toolsDependencies: [],
+        buildProperties: {}
+      };
+
+      // Start with ESP32
+      const result1 = tracker.detectChanges(fqbnESP32, esp32Details);
+      expect(result1.isInitial).toBe(true);
+
+      // Switch to LUFA (no config options) - should still detect board change
+      const result2 = tracker.detectChanges(fqbnLUFA, lufaDetails);
+      expect(result2.isInitial).toBe(false);
+      expect(result2.changes).toHaveLength(1);
+      expect(result2.changes[0]).toEqual({
+        option: 'FQBN',
+        label: 'Board Selection',
+        previousValue: fqbnESP32,
+        newValue: fqbnLUFA,
+        previousLabel: 'Previous board',
+        newLabel: 'New board',
+      });
+
+      // Switch back to ESP32 - should detect board change
+      const result3 = tracker.detectChanges(fqbnESP32, esp32Details);
+      expect(result3.isInitial).toBe(false);
+      expect(result3.changes).toHaveLength(1);
+      expect(result3.changes[0].option).toBe('FQBN');
+      expect(result3.changes[0].previousValue).toBe(fqbnLUFA);
+      expect(result3.changes[0].newValue).toBe(fqbnESP32);
     });
   });
 

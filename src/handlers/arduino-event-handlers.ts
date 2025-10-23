@@ -125,9 +125,11 @@ function handleFqbnChange(
     return;
   }
 
-  const { isInitial, changes } = stateTracker.detectChanges(fqbn, boardDetails);
+  // Don't call detectChanges here - let handleBoardDetailsChange handle it
+  // FQBN change fires first with base FQBN, then boardDetails fires with complete info
+  // If we call detectChanges here, it updates the state and boardDetails sees no change!
 
-  // Only log if there are actual changes or it's initial
+  // Just log the raw FQBN change for tracking purposes
   const logEntry: LogEntry = {
     timestamp: new Date().toISOString(),
     sketchPath,
@@ -142,20 +144,15 @@ function handleFqbnChange(
           protocol: port.protocol,
         }
       : undefined,
-    changes,
-    changeType: isInitial ? 'initial' : 'fqbn',
+    changes: [], // No change detection here
+    changeType: 'fqbn',
   };
 
   logService.logConfigChange(logEntry);
 
-  // Auto-update sketch.yaml if enabled and there are actual changes
-  // Use arduinoContext.fqbn which includes all configuration options
-  if (!isInitial && changes.length > 0 && fqbn && boardDetails && SketchYamlService.isAutoUpdateEnabled()) {
-    console.log(`[handleFqbnChange] Auto-updating sketch.yaml with FQBN: ${fqbn}`);
-    SketchYamlService.updateSketchYamlFqbn(fqbn, boardDetails, true).catch((error) => {
-      console.error('Error auto-updating sketch.yaml:', error);
-    });
-  }
+  // Don't auto-update here - wait for boardDetails change which has complete info
+  // FQBN change event fires with base FQBN only (no config options)
+  // boardDetails change event fires afterward with complete FQBN + all options
 }
 
 /**
@@ -174,34 +171,32 @@ function handleBoardDetailsChange(
 
   const { isInitial, changes } = stateTracker.detectChanges(fqbn, boardDetails);
 
-  // Only log if there are actual changes (not initial)
-  if (isInitial || changes.length === 0) {
-    return;
+  // Log if there are actual changes (not initial)
+  if (!isInitial && changes.length > 0) {
+    const logEntry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      sketchPath,
+      fqbn,
+      board: {
+        name: extractBoardName(fqbn),
+        fqbn,
+      },
+      port: port
+        ? {
+            address: port.address,
+            protocol: port.protocol,
+          }
+        : undefined,
+      changes,
+      changeType: 'board',
+    };
+
+    logService.logConfigChange(logEntry);
   }
 
-  const logEntry: LogEntry = {
-    timestamp: new Date().toISOString(),
-    sketchPath,
-    fqbn,
-    board: {
-      name: extractBoardName(fqbn),
-      fqbn,
-    },
-    port: port
-      ? {
-          address: port.address,
-          protocol: port.protocol,
-        }
-      : undefined,
-    changes,
-    changeType: 'board',
-  };
-
-  logService.logConfigChange(logEntry);
-
-  // Auto-update sketch.yaml if enabled
-  // Use arduinoContext.fqbn which includes all configuration options
-  if (fqbn && boardDetails && SketchYamlService.isAutoUpdateEnabled()) {
+  // Auto-update sketch.yaml if enabled and there are changes (including board switches)
+  // This event has complete FQBN with all config options from boardDetails
+  if (!isInitial && changes.length > 0 && SketchYamlService.isAutoUpdateEnabled()) {
     console.log(`[handleBoardDetailsChange] Auto-updating sketch.yaml with FQBN: ${fqbn}`);
     SketchYamlService.updateSketchYamlFqbn(fqbn, boardDetails, true).catch((error) => {
       console.error('Error auto-updating sketch.yaml:', error);

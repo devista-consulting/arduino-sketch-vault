@@ -15,6 +15,7 @@ interface SelectedConfigOption {
 
 export class ConfigStateTracker {
   private previousStates = new Map<string, BoardConfigState>();
+  private currentlySelectedBoard: string | undefined;
 
   detectChanges(
     fqbn: string,
@@ -24,16 +25,39 @@ export class ConfigStateTracker {
       return { isInitial: true, changes: [] };
     }
 
+    // Check if board changed globally (switching between different boards)
+    const boardChanged = this.currentlySelectedBoard !== undefined && this.currentlySelectedBoard !== fqbn;
+    const previouslySelectedBoard = this.currentlySelectedBoard;
+
     const previousState = this.previousStates.get(fqbn);
     const newState = this.createState(fqbn, boardDetails);
+
+    // Update currently selected board
+    this.currentlySelectedBoard = fqbn;
 
     if (!previousState) {
       // First time seeing this board
       this.previousStates.set(fqbn, newState);
+
+      // If we switched from another board, it's not initial (it's a board change)
+      if (boardChanged) {
+        return {
+          isInitial: false,
+          changes: [{
+            option: 'FQBN',
+            label: 'Board Selection',
+            previousValue: previouslySelectedBoard,
+            newValue: fqbn,
+            previousLabel: 'Previous board',
+            newLabel: 'New board',
+          }]
+        };
+      }
+
       return { isInitial: true, changes: [] };
     }
 
-    const changes = this.compareStates(previousState, newState);
+    const changes = this.compareStates(previousState, newState, boardChanged, previouslySelectedBoard);
     this.previousStates.set(fqbn, newState);
 
     return { isInitial: false, changes };
@@ -75,9 +99,23 @@ export class ConfigStateTracker {
 
   private compareStates(
     previous: BoardConfigState,
-    current: BoardConfigState
+    current: BoardConfigState,
+    boardChanged: boolean,
+    previouslySelectedBoard: string | undefined
   ): ConfigChange[] {
     const changes: ConfigChange[] = [];
+
+    // If board changed globally (switching between different boards), add board change entry
+    if (boardChanged && previouslySelectedBoard) {
+      changes.push({
+        option: 'FQBN',
+        label: 'Board Selection',
+        previousValue: previouslySelectedBoard,
+        newValue: current.fqbn,
+        previousLabel: previouslySelectedBoard,
+        newLabel: current.fqbn,
+      });
+    }
 
     // Check for changed config options
     for (const [option, currentValue] of current.configOptions) {
@@ -111,5 +149,6 @@ export class ConfigStateTracker {
 
   clear(): void {
     this.previousStates.clear();
+    this.currentlySelectedBoard = undefined;
   }
 }

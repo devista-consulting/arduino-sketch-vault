@@ -397,7 +397,7 @@ describe('Arduino Event Handlers', () => {
       });
     });
 
-    it('should auto-update sketch.yaml on FQBN change when enabled', () => {
+    it('should NOT auto-update sketch.yaml on FQBN change (waits for boardDetails)', () => {
       isAutoUpdateEnabledStub.returns(true);
       updateSketchYamlFqbnStub.resolves();
 
@@ -407,14 +407,10 @@ describe('Arduino Event Handlers', () => {
         statusBarService: mockStatusBarService
       });
 
-      // Trigger FQBN change
+      // Trigger FQBN change - should NOT auto-update (waits for boardDetails)
       mockArduinoContext._setFqbn('esp32:esp32:esp32s3:UploadSpeed=460800');
 
-      expect(updateSketchYamlFqbnStub.calledWith(
-        'esp32:esp32:esp32s3:UploadSpeed=460800',
-        sinon.match.any,
-        true
-      )).toBe(true);
+      expect(updateSketchYamlFqbnStub.called).toBe(false);
     });
 
     it('should not auto-update sketch.yaml when disabled', () => {
@@ -426,8 +422,8 @@ describe('Arduino Event Handlers', () => {
         statusBarService: mockStatusBarService
       });
 
-      // Trigger FQBN change
-      mockArduinoContext._setFqbn('esp32:esp32:esp32s3:UploadSpeed=460800');
+      // Trigger board details change
+      mockArduinoContext._setBoardDetails(mockArduinoContext.boardDetails!);
 
       expect(updateSketchYamlFqbnStub.called).toBe(false);
     });
@@ -445,8 +441,8 @@ describe('Arduino Event Handlers', () => {
         statusBarService: mockStatusBarService
       });
 
-      // Trigger FQBN change
-      mockArduinoContext._setFqbn('esp32:esp32:esp32s3:UploadSpeed=460800');
+      // Trigger board details change
+      mockArduinoContext._setBoardDetails(mockArduinoContext.boardDetails!);
 
       expect(updateSketchYamlFqbnStub.called).toBe(false);
     });
@@ -464,8 +460,8 @@ describe('Arduino Event Handlers', () => {
         statusBarService: mockStatusBarService
       });
 
-      // Trigger FQBN change
-      mockArduinoContext._setFqbn('esp32:esp32:esp32s3:UploadSpeed=921600');
+      // Trigger board details change
+      mockArduinoContext._setBoardDetails(mockArduinoContext.boardDetails!);
 
       expect(updateSketchYamlFqbnStub.called).toBe(false);
     });
@@ -480,8 +476,8 @@ describe('Arduino Event Handlers', () => {
         statusBarService: mockStatusBarService
       });
 
-      // Trigger FQBN change
-      mockArduinoContext._setFqbn('esp32:esp32:esp32s3:UploadSpeed=460800');
+      // Trigger board details change
+      mockArduinoContext._setBoardDetails(mockArduinoContext.boardDetails!);
 
       // Wait a bit for the promise rejection to be handled
       await new Promise(resolve => setTimeout(resolve, 100));
